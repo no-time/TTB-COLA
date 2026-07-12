@@ -1,0 +1,30 @@
+FROM debian:bookworm-slim
+
+# Install Nginx, ModSecurity, OWASP CRS, and wget to fetch the config
+RUN apt-get update && apt-get install -y \
+    nginx \
+    libnginx-mod-http-modsecurity \
+    modsecurity-crs \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download the recommended modsecurity.conf AND unicode.mapping directly from the official repository
+RUN mkdir -p /etc/modsecurity && \
+    wget https://raw.githubusercontent.com/owasp-modsecurity/ModSecurity/v3/master/modsecurity.conf-recommended -O /etc/modsecurity/modsecurity.conf && \
+    wget https://raw.githubusercontent.com/owasp-modsecurity/ModSecurity/v3/master/unicode.mapping -O /etc/modsecurity/unicode.mapping
+
+# Activate the WAF engine
+RUN sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' /etc/modsecurity/modsecurity.conf
+
+# --- NEW: Patch the Debian CRS package to use Nginx v3 syntax ---
+RUN sed -i 's/IncludeOptional/Include/g' /usr/share/modsecurity-crs/owasp-crs.load
+
+# Include OWASP Rules for SQLi, XSS, and LFI
+RUN echo "Include /usr/share/modsecurity-crs/owasp-crs.load" >> /etc/modsecurity/modsecurity.conf
+
+# Map logs to standard output so WAF blocks show up in Docker logs
+RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log
+
+# Start Nginx in the foreground
+CMD ["nginx", "-g", "daemon off;"]

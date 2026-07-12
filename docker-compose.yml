@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------
+  # 1. NGINX REVERSE PROXY (The Secure Front Door)
+  # ---------------------------------------------
+  # Acts as the sole entry point, enforcing rate limits and WAF rules.
+  security-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    ports:
+      - "80:80"  
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./.htpasswd:/etc/nginx/.htpasswd:ro
+    networks:
+      - ttb_secure_net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    depends_on:
+      - streamlit-app
+    restart: unless-stopped
+
+  # ---------------------------------------------
+  # 2. STREAMLIT APP (Now Hidden Internally)
+  # ---------------------------------------------
+  # The UI and Application Logic tier. 
+  streamlit-app:
+    build: .
+    # PORTS REMOVED: External users can no longer bypass Nginx to reach port 8501
+    environment:
+      # Redirect Streamlit to send its VLM requests to the interceptor instead
+      - OLLAMA_HOST=http://ai-guardrail:8000
+    networks:
+      - ttb_secure_net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+    depends_on:
+      - ai-guardrail
+    restart: unless-stopped
+
+  # ---------------------------------------------
+  # 3. AI INTERCEPTOR (The Guardrail Proxy)
+  # ---------------------------------------------
+  # This container intercepts requests between Streamlit and the VLM.
+  # It performs Input Sanitization (checking for adversarial noise/payloads) 
+  # and Output DLP (masking PII/PHI) before data reaches the database.
+  ai-guardrail:
+    build:
+      context: .
+      # Tell the proxy where the actual isolated AI engine lives
+      dockerfile: Dockerfile.guardrail
+    environment:
+      - TARGET_OLLAMA_URL=http://ollama-server:11434
+    networks:
+      - ttb_secure_net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'   # Increased from 1.0
+          memory: 4G    # Increased from 1G
+    depends_on:
+      - ollama-server
+    restart: unless-stopped
+  # ---------------------------------------------
+  # 4. OLLAMA SERVER (The VLM Engine)
+  # ---------------------------------------------
+  # The raw compute engine. Completely air-gapped from the host network.
+  ollama-server:
+    image: ollama/ollama:latest
+    environment:
+      # Forces Ollama to accept traffic from the Guardrail on the internal bridge
+      - OLLAMA_HOST=0.0.0.0 
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - ttb_secure_net
+    deploy:
+      resources:
+        limits:
+          memory: 8G 
+    restart: unless-stopped
+
+networks:
+  ttb_secure_net:
+    driver: bridge
+
+volumes:
+  ollama_data:
+  
+  

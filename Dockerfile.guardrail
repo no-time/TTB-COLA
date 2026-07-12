@@ -1,0 +1,12 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install the FastAPI and HTTPX requirements
+RUN pip install fastapi uvicorn httpx
+
+# Copy the interceptor script
+COPY ai_guardrail.py .
+
+# Run the proxy on port 8000
+CMD ["uvicorn", "ai_guardrail:app", "--host", "0.0.0.0", "--port", "8000"]
