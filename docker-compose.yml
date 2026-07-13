@@ -89,6 +89,23 @@ services:
         limits:
           memory: 8G 
     restart: unless-stopped
+#                                                    w / GPU
+#  ollama-server:    image: ollama/ollama:latest
+#    environment:
+#      - OLLAMA_HOST=0.0.0.0 
+#    volumes:
+#      - ollama_data:/root/.ollama
+#    networks:
+#      - ttb_secure_net
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [gpu]
+#    restart: unless-stopped
+
 
 networks:
   ttb_secure_net:
