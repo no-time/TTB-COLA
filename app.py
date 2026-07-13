@@ -5,10 +5,48 @@ import json
 import csv
 import io
 import traceback
-import time  # <-- Added for database lock throttling and timers
+import time  # <-- Added for database lock throttling
+import urllib.request
+import urllib.error
 
 # Initialize Database on boot
 db.init_db()
+
+
+# --- AUTOMATED MODEL PROVISIONING ---
+@st.cache_resource
+def ensure_model_provisioned():
+    """Checks if the Qwen model exists on the backend, and downloads it if missing."""
+    target_model = "qwen2.5vl:3b"
+    engine_url = "http://ollama-server:11434"
+    
+    try:
+        # 1. Check existing models
+        req = urllib.request.Request(f"{engine_url}/api/tags")
+        with urllib.request.urlopen(req, timeout=5.0) as response:
+            data = json.loads(response.read().decode())
+            existing_models = [m.get("name") for m in data.get("models", [])]
+            
+        # 2. Trigger pull if missing (accounts for the ':latest' tag append)
+        if target_model not in existing_models and f"{target_model}:latest" not in existing_models:
+            with st.spinner(f"First-time Setup: Provisioning {target_model} to the AI Engine. This will take a few minutes..."):
+                pull_payload = json.dumps({"name": target_model, "stream": False}).encode('utf-8')
+                pull_req = urllib.request.Request(
+                    f"{engine_url}/api/pull", 
+                    data=pull_payload, 
+                    headers={'Content-Type': 'application/json'}
+                )
+                # Give it a 10-minute timeout for the download
+                urllib.request.urlopen(pull_req, timeout=600.0) 
+            st.success(f"Successfully provisioned {target_model}!")
+            time.sleep(2) # Give the user a second to read the success message
+            
+    except Exception as e:
+        st.sidebar.warning(f"⚠️ Could not verify model status: {e}")
+
+# Run the check every time the app boots
+ensure_model_provisioned()
+# ------------------------------------
 
 st.set_page_config(page_title="TTB Modernization Platform", layout="wide")
 
@@ -266,24 +304,14 @@ elif user_role == "TTB Review Agent":
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     
-                    # START TOTAL BATCH TIMER
-                    batch_start_time = time.time()
-                    
                     for i, app in enumerate(selected_apps):
                         status_text.text(f"Analyzing Application #{app[0]} ({app[1]})...")
                         app_data = {"brand_name": app[1], "class_type": app[2], "alc_content": app[3], "net_contents": app[4]}
                         images = [app[5], app[6]] 
                         
                         try:
-                            # START INDIVIDUAL INFERENCE TIMER
-                            inf_start = time.time()
-                            
                             # 1. Attempt AI Processing
                             result = process_label(images, app_data, use_vlm=use_vlm)
-                            
-                            # END INDIVIDUAL INFERENCE TIMER
-                            inf_elapsed = time.time() - inf_start
-                            st.toast(f"⏱️ App #{app[0]} analyzed in {inf_elapsed:.2f} seconds")
                             
                             # 2. Write Success/Flag to Database
                             db.update_ai_results(app[0], result['status'], json.dumps(result['details']), result['raw_text'])
@@ -299,14 +327,9 @@ elif user_role == "TTB Review Agent":
                         
                         progress_bar.progress((i + 1) / len(selected_apps))
                         
-                    # END TOTAL BATCH TIMER
-                    batch_elapsed = time.time() - batch_start_time
-                    st.success(f"Batch processing complete! Total time: {batch_elapsed:.2f} seconds.")
-                    
-                    # Increased pause so the Treasury reviewers can actually read the final time
-                    time.sleep(4) 
+                    st.success("Batch processing complete!")
+                    time.sleep(1) # Final pause before the UI refreshes
                     st.rerun()
-
     # ------------------------------------------
     # TAB 3: FLAGGED QUEUE
     # ------------------------------------------

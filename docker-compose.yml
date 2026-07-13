@@ -32,6 +32,8 @@ services:
   streamlit-app:
     build: .
     # PORTS REMOVED: External users can no longer bypass Nginx to reach port 8501
+    volumes:
+      - .:/app
     environment:
       # Redirect Streamlit to send its VLM requests to the interceptor instead
       - OLLAMA_HOST=http://ai-guardrail:8000

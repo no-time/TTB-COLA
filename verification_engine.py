@@ -8,6 +8,7 @@ import easyocr
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 
+
 # Initialize the EasyOCR reader
 reader = easyocr.Reader(['en'], gpu=False)
 
@@ -75,38 +76,38 @@ def extract_with_ocr(img_bytes):
         print(f"OCR Exception: {e}")
         return ""
 
+
+
 def extract_with_vlm(img_bytes):
-    """
-    Uses raw HTTP requests to bypass the Ollama Python client, 
-    preventing Streamlit socket deadlocks during batch loops.
-    """
     try:
         if not img_bytes:
             return ""
             
         image = Image.open(io.BytesIO(img_bytes)).convert('RGB')
         
-        # 1500x1500px is the sweet spot. 
-        image.thumbnail((1500, 1500), Image.Resampling.LANCZOS)
+        # KEEP THIS: Shrink the image so the CPU can handle the matrix math
+        image.thumbnail((800, 800), Image.Resampling.LANCZOS)
         
         img_byte_arr = io.BytesIO()
         image.save(img_byte_arr, format='JPEG', quality=85)
         optimized_bytes = img_byte_arr.getvalue()
         
-        # This points back to your Guardrail container (e.g., http://ai-guardrail:8000)
-        ollama_url = os.environ.get('OLLAMA_HOST', 'http://ollama-server:11434')
+        # REVERT 1: Dynamically grab the Guardrail Proxy URL from Docker environment
+        # This ensures traffic goes to http://ai-guardrail:8000 first
+        ollama_url = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
         
         b64_img = base64.b64encode(optimized_bytes).decode('utf-8')
         
+        # REVERT 2: Ensure it targets the provisioned Qwen model
         payload = {
-            "model": "qwen2.5vl",
+            "model": "qwen2.5vl:3b",
             "messages": [{
                 "role": "user",
-                "content": "Read all the text in this image exactly as written. Output ONLY the transcribed text. Do not include introductory or concluding remarks. Do not use formatting. Just the raw text from top to bottom.",
+                "content": "Read all the text in this image exactly as written. Output ONLY the transcribed text. Do not use formatting.",
                 "images": [b64_img]
             }],
             "options": {
-                "num_ctx": 8192 
+                "num_ctx": 2048 # KEEP THIS: Shrink the RAM allocation footprint
             },
             "stream": False
         }
@@ -114,18 +115,16 @@ def extract_with_vlm(img_bytes):
         req_data = json.dumps(payload).encode('utf-8')
         req = urllib.request.Request(f"{ollama_url}/api/chat", data=req_data, headers={'Content-Type': 'application/json'})
         
-        # The 'with' context manager strictly tears down the socket immediately after returning
-        with urllib.request.urlopen(req, timeout=180.0) as response:
+        # KEEP THIS: Massive 10-minute timeout to let the local/AWS CPU finish thinking
+        with urllib.request.urlopen(req, timeout=600.0) as response:
             response_data = json.loads(response.read().decode())
             raw_string = response_data.get('message', {}).get('content', '')
             
-        return sanitize_label_text(raw_string)
+        return sanitize_label_text(raw_string) # Assuming sanitize_label_text is defined above
         
     except Exception as e:
-        # THE FIX: Forcefully raise the error so app.py can catch it and release the lock
-        raise RuntimeError(f"Guardrail/VLM Timeout or Connection Drop: {str(e)}")
+        raise RuntimeError(f"VLM Timeout or Connection Drop: {str(e)}")
         
-# --- UPDATED SMART VERIFICATION LOGIC ---
 def verify_general_field(expected_value, extracted_text):
     if not expected_value:
         return False
