@@ -5,7 +5,7 @@ import json
 import csv
 import io
 import traceback
-import time  # <-- Added for database lock throttling
+import time  # <-- Added for database lock throttling and timers
 
 # Initialize Database on boot
 db.init_db()
@@ -266,14 +266,24 @@ elif user_role == "TTB Review Agent":
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     
+                    # START TOTAL BATCH TIMER
+                    batch_start_time = time.time()
+                    
                     for i, app in enumerate(selected_apps):
                         status_text.text(f"Analyzing Application #{app[0]} ({app[1]})...")
                         app_data = {"brand_name": app[1], "class_type": app[2], "alc_content": app[3], "net_contents": app[4]}
                         images = [app[5], app[6]] 
                         
                         try:
+                            # START INDIVIDUAL INFERENCE TIMER
+                            inf_start = time.time()
+                            
                             # 1. Attempt AI Processing
                             result = process_label(images, app_data, use_vlm=use_vlm)
+                            
+                            # END INDIVIDUAL INFERENCE TIMER
+                            inf_elapsed = time.time() - inf_start
+                            st.toast(f"⏱️ App #{app[0]} analyzed in {inf_elapsed:.2f} seconds")
                             
                             # 2. Write Success/Flag to Database
                             db.update_ai_results(app[0], result['status'], json.dumps(result['details']), result['raw_text'])
@@ -289,9 +299,14 @@ elif user_role == "TTB Review Agent":
                         
                         progress_bar.progress((i + 1) / len(selected_apps))
                         
-                    st.success("Batch processing complete!")
-                    time.sleep(1) # Final pause before the UI refreshes
+                    # END TOTAL BATCH TIMER
+                    batch_elapsed = time.time() - batch_start_time
+                    st.success(f"Batch processing complete! Total time: {batch_elapsed:.2f} seconds.")
+                    
+                    # Increased pause so the Treasury reviewers can actually read the final time
+                    time.sleep(4) 
                     st.rerun()
+
     # ------------------------------------------
     # TAB 3: FLAGGED QUEUE
     # ------------------------------------------
