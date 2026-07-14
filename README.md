@@ -236,7 +236,7 @@ X-Forwarded-Groups: Not Found
 
 
 # The Three Failsafes Explained
-This diagram highlights that your application is secured at three completely isolated checkpoints:
+This diagram highlights that this application (above) is secured at three completely isolated checkpoints:
 
 * The Edge Checkpoint (Nginx/ModSecurity): Stops traditional web attacks from even touching your application code.
 
