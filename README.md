@@ -34,12 +34,16 @@ This application enforces a strict Zero Trust model across three distinct layers
 *   **Data Integrity:** Bulk legacy uploads adhere to a standard CSV schema (`filename`, `brand_name`, `class_type`, `alc_content`, `net_contents`).
 
 ## ⚠️ Known Limitations
-*   **Hardware Constraints:** The local deployment of Qwen2.5-VL is resource-intensive. Processing speeds and extraction accuracy are heavily constrained by the available compute allocated to the Docker environment. Running on a CPU is about 1min per image.
-*   **WAF WebSocket Blindspot:** Streamlit operates primarily over WebSockets. Network-layer WAFs (like ModSecurity) cannot inspect continuous binary WebSocket frames, requiring the application to rely on Python-level data sanitization for form submissions.
+*   **Hardware Constraints:** The local deployment of Qwen2.5-VL is resource-intensive. Processing speeds and extraction accuracy are heavily constrained by the available compute allocated to the Docker environment. Running on a CPU is about 1min per image. In future this would run on heavier hardware, using different models that can utilize GPU instead of CPU for image processing.
+*   **WAF WebSocket/Locked into Browser:** Streamlit operates primarily over WebSockets. Network-layer WAFs (like ModSecurity) cannot inspect continuous binary WebSocket frames, requiring the application to rely on Python-level data sanitization for form submissions. This means, if you navigate away from the page or the browser :goes to sleep" the AI batch script stops running, you can however open another tab to continue viewing. This is due to Streamlit using an open websocket, and would be changed in enterprise. Passing off the job to a backend queue (PostGRE/Redris), using a server side execution instead of inside of the app, agent would not send back to the browser, and "true batch processing" where jobs would handle large csv/batch data uploads.
 *   **Mock Authentication:** The current IdP is a simulated gateway using `.htpasswd`. A production deployment would require an OAuth2-Proxy sidecar integrated with a true enterprise directory (e.g., Entra ID, Okta).
 *   **Load Balancing/SSL Negotiation** Current live demo http://184.73.38.33, is running on HTTP. Enterprise application would be behind load balancer
-*   **External Processing** Mail/Notification client is basic in JSON output, but is very simple
-*   
+*   **External Processing** Mail/Notification client is basic in JSON output, but is very simple.
+*   **Model Training** Currently all final approvals are passed into a JSON (vlm_training_log.jsonl), this file would be used to reweight/train models to improve efficiency. This has not been implemented beyond collection.
+*   **AI Guardrails** Architectural controls are main security control here, in enterprise there would be template/manifest controls, full RBAC implementation, loggin/prompt analysis and auditing, and controls to shut down instanced agents/resources automatically.
+*   **Database Infrastructure** This is a single record lock database which can cause a bottleneck, implementing a more robust solution would improve scalability, performance, and security.
+*   **Regulatory Controls/Documentation** Inclusion of further compliance of CFR documentation, Federal Regulations, and COLA standard forms within the application would need to be added for completeness. This was not done due to time/complexity/resource constraints.
+*   **Migrating/Including Current PDF ingression** Having a PDF fillable form, versus a web form, and ability to migrate older/current forms (PDFs) would be for future planning. 
 
 ## 🚀 Setup and Run Instructions
 
