@@ -43,7 +43,8 @@ This application enforces a strict Zero Trust model across three distinct layers
 *   **AI Guardrails** Architectural controls are main security control here, in enterprise there would be template/manifest controls, full RBAC implementation, loggin/prompt analysis and auditing, and controls to shut down instanced agents/resources automatically.
 *   **Database Infrastructure** This is a single record lock database which can cause a bottleneck, implementing a more robust solution would improve scalability, performance, and security.
 *   **Regulatory Controls/Documentation** Inclusion of further compliance of CFR documentation, Federal Regulations, and COLA standard forms within the application would need to be added for completeness. This was not done due to time/complexity/resource constraints.
-*   **Migrating/Including Current PDF ingression** Having a PDF fillable form, versus a web form, and ability to migrate older/current forms (PDFs) would be for future planning. 
+*   **Migrating/Including Current PDF ingression** Having a PDF fillable form, versus a web form, and ability to migrate older/current forms (PDFs) would be for future planning.
+*   **Separate Instances** Currently app has both submitter and reviewer. In future these would be instanced and tied to a role/account.
 
 ## 🚀 Setup and Run Instructions
 
