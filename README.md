@@ -45,6 +45,7 @@ This application enforces a strict Zero Trust model across three distinct layers
 *   **Regulatory Controls/Documentation** Inclusion of further compliance of CFR documentation, Federal Regulations, and COLA standard forms within the application would need to be added for completeness. This was not done due to time/complexity/resource constraints.
 *   **Migrating/Including Current PDF ingression** Having a PDF fillable form, versus a web form, and ability to migrate older/current forms (PDFs) would be for future planning.
 *   **Separate Instances** Currently app has both submitter and reviewer. In future these would be instanced and tied to a role/account.
+*   **Data Flow & Data Entry** Current form still requires entry and comparison, although raw text output is pulled in, ideally just an image could be uploaded, the text would be added to the form and any corrections could be made in place prior to submission. In future the image would be processed initially upon submission, and the reviewer would be there to just double check (with a supervisor/approving authority being final approval).
 
 ## 🚀 Setup and Run Instructions
 
