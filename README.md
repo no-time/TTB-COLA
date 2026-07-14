@@ -253,6 +253,9 @@ This diagram highlights that this application (above) is secured at three comple
 * The Data Checkpoint (Python DLP): Ensures that even if the AI perfectly extracts sensitive information from a label, it is destroyed in 
 application memory before it can ever be stored in a database or rendered on the screen.
 
+---
+
+# Script/Application Manifests
 
 ### `verification_engine.py` (Backend Verification Pipeline)
 
