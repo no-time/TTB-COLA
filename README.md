@@ -136,7 +136,7 @@ Rationale for denial is auto formatted/included if a fail occurs, but can be cha
 Approved Registry, auto submitted to this queue if passed AI Batch Approval. Can be revoked/sent back to queue with revoke approval & flag
 
 ---
-### 🔰 Security Controls
+# 🔰 Security Controls
 <img width="2930" height="1308" alt="image" src="https://github.com/user-attachments/assets/2a0511a0-fdf3-4229-b8ea-7e58f43b41b0" />
 Uses simple redaction (this is configured to go through improved PII controls, right now just running through regex controls)
 
