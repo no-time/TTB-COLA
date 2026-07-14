@@ -97,7 +97,7 @@ Select **TTB Review Agent** to access the triage queues and run the AI verificat
 *   **🚨 Wipe Database (Reset Demo):** Removes all items that exist in the database to test.
 *   **🔓 Unlock Stuck Applications (Failsafe):** Manually drops database processing locks in the event of an idle timeout.
 ---
-#      Screenshots
+# 📷 Screenshots
 <img width="3756" height="1656" alt="image" src="https://github.com/user-attachments/assets/f5390559-6186-4aef-afd8-46dccbd39ca7" />
 Initial login with Upstream headers shown (on left)
 
@@ -136,7 +136,7 @@ Rationale for denial is auto formatted/included if a fail occurs, but can be cha
 Approved Registry, auto submitted to this queue if passed AI Batch Approval. Can be revoked/sent back to queue with revoke approval & flag
 
 ---
-### Security Controls
+### 🔰 Security Controls
 <img width="2930" height="1308" alt="image" src="https://github.com/user-attachments/assets/2a0511a0-fdf3-4229-b8ea-7e58f43b41b0" />
 Uses simple redaction (this is configured to go through improved PII controls, right now just running through regex controls)
 
@@ -146,14 +146,14 @@ Input sanitization (within Script), prevents SQLi.
 ---
 <img width="1828" height="312" alt="image" src="https://github.com/user-attachments/assets/dc6d9a8a-35a6-4b5c-a573-de069cb3a395" />
 
-**Uses OWASP Top 10 (prevents basic XSS)**
+**🐝Uses OWASP Top 10 (prevents basic XSS)**
 
 2026/07/14 04:33:58 [error] 7#7: *191 [client [REDACTED_CLIENT_IP]] **ModSecurity: Access denied with code 403 (phase 2).** Matched "Operator `Ge' with parameter `5' against variable `TX:ANOMALY_SCORE' (Value: `13' ) [file "/usr/share/modsecurity-crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf"] [line "81"] [id "949110"] [rev ""] [msg "Inbound Anomaly Score Exceeded (Total Score: 13)"] [data ""] [severity "2"] [ver "OWASP_CRS/3.3.4"] [maturity "0"] [accuracy "0"] [tag "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag "attack-generic"] [hostname "172.18.0.5"] [uri "/favicon.ico"] [unique_id "[REDACTED_UNIQUE_ID]"] [ref ""], client: [REDACTED_CLIENT_IP], server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "[REDACTED_HOST_IP]", referrer: "**http://[REDACTED_HOST_IP]/%3Cscript%3Ealert('Vulnerable')%3C/script%3E**" 
 
 [REDACTED_CLIENT_IP] - admin [14/Jul/2026:04:33:58 +0000] "GET /favicon.ico HTTP/1.1" 403 555 "http://[REDACTED_HOST_IP]/%3Cscript%3Ealert('Vulnerable')%3C/script%3E" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
 
 ---
-**Network Proxy (FAST API)**
+**🌐Network Proxy (FAST API)**
 
 Every time Streamlit sends a base64 image and a prompt to the AI, it actually hits the FastAPI proxy first. 
 This allows the proxy to inspect the inbound prompt (to block prompt injections or jailbreak attempts) 
@@ -161,7 +161,7 @@ and inspect the outbound AI response (to ensure it isn't hallucinating malicious
 
 ---
 
-**IAM/MFA**
+**🆔IAM/MFA**
 Uses JWT to control user access (this is shown on left a general token to provide username/password access with dummy token)
 
 <img width="428" height="416" alt="image" src="https://github.com/user-attachments/assets/a20f31d0-4d23-4517-bfad-e73ccc156c4a" />
@@ -172,7 +172,7 @@ X-Forwarded-User: Not Found
 X-Forwarded-Groups: Not Found
 
 ---
-# Data Flow/Protections
+# 🌊 Data Flow/Protections
 
 ```
        [ External User / Web Browser ]
@@ -255,7 +255,7 @@ application memory before it can ever be stored in a database or rendered on the
 
 ---
 
-# Script/Application Manifests
+# 📜 Script/Application Manifests
 
 ### `verification_engine.py` (Backend Verification Pipeline)
 
