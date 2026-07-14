@@ -59,7 +59,7 @@ Once the containers are running, download the Qwen2.5-VL weights into the Ollama
 `docker exec -it <your-ollama-container-name> ollama pull qwen2.5vl`
 
 ### 3. Access the Application
-### 3a. LOCAL INSTALL
+### 3a. LOCAL INSTALL (Ensure you have pre-requisites, docker, ollama, model: qwen2.5v1, if on Windows Docker Engine running, processor that is compatible -- AVMX/Intel Saphire are not compatible with certain ollama models)
       Navigate to `http://localhost` in your web browser. 
       Authenticate using the demo gateway credentials:
       **Username:** `admin`
