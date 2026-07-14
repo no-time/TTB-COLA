@@ -133,7 +133,7 @@ Approved Registry, auto submitted to this queue if passed AI Batch Approval. Can
 <img width="2930" height="1308" alt="image" src="https://github.com/user-attachments/assets/2a0511a0-fdf3-4229-b8ea-7e58f43b41b0" />
 Uses simple redaction (this is configured to go through improved PII controls, right now just running through regex controls)
 
-Input sanitization (within Script)
+**Input sanitization (within Script)**
 
 <img width="1828" height="312" alt="image" src="https://github.com/user-attachments/assets/dc6d9a8a-35a6-4b5c-a573-de069cb3a395" />
 
