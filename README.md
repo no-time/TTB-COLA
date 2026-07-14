@@ -137,19 +137,19 @@ Input sanitization (within Script)
 
 <img width="1828" height="312" alt="image" src="https://github.com/user-attachments/assets/dc6d9a8a-35a6-4b5c-a573-de069cb3a395" />
 
-** Uses OWASP Top 10 (prevents basic SQLi/XSS)
+**Uses OWASP Top 10 (prevents basic SQLi/XSS)**
 
 2026/07/14 04:33:58 [error] 7#7: *191 [client [REDACTED_CLIENT_IP]] **ModSecurity: Access denied with code 403 (phase 2).** Matched "Operator `Ge' with parameter `5' against variable `TX:ANOMALY_SCORE' (Value: `13' ) [file "/usr/share/modsecurity-crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf"] [line "81"] [id "949110"] [rev ""] [msg "Inbound Anomaly Score Exceeded (Total Score: 13)"] [data ""] [severity "2"] [ver "OWASP_CRS/3.3.4"] [maturity "0"] [accuracy "0"] [tag "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag "attack-generic"] [hostname "172.18.0.5"] [uri "/favicon.ico"] [unique_id "[REDACTED_UNIQUE_ID]"] [ref ""], client: [REDACTED_CLIENT_IP], server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "[REDACTED_HOST_IP]", referrer: "**http://[REDACTED_HOST_IP]/%3Cscript%3Ealert('Vulnerable')%3C/script%3E**" 
 
 [REDACTED_CLIENT_IP] - admin [14/Jul/2026:04:33:58 +0000] "GET /favicon.ico HTTP/1.1" 403 555 "http://[REDACTED_HOST_IP]/%3Cscript%3Ealert('Vulnerable')%3C/script%3E" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
 
 
-** Network Proxy (FAST API)**
+**Network Proxy (FAST API)**
 Every time Streamlit sends a base64 image and a prompt to the AI, it actually hits the FastAPI proxy first. 
 This allows the proxy to inspect the inbound prompt (to block prompt injections or jailbreak attempts) 
 and inspect the outbound AI response (to ensure it isn't hallucinating malicious code) before it ever reaches the user interface.
 
-** IAM/MFA **
+**IAM/MFA**
 Uses JWT to control user access (this is shown on left a general token to provide username/password access with dummy token)
 
 <img width="428" height="416" alt="image" src="https://github.com/user-attachments/assets/a20f31d0-4d23-4517-bfad-e73ccc156c4a" />
@@ -161,7 +161,8 @@ X-Forwarded-Groups: Not Found
 
 # Data Flow/Protections
 
-[ External User / Web Browser ]
+```
+       [ External User / Web Browser ]
                      |
                      | 1. HTTP Request (Image Upload / Form Data)
                      v (Port 80)
@@ -221,13 +222,23 @@ X-Forwarded-Groups: Not Found
 | LAYER 7: THE VERIFICATION ENGINE                      |
 | (Python Backend: `verify_alcohol_field`, etc.)        |
 =========================================================
-      | - Compares redacted text against expected app data.
+      | - Compares extracted values against expected app data.
       | - Checks Brand Name, Class, Alcohol %, Warnings.
       |
       v
 [ FINAL OUTPUT: Streamlit UI renders "APPROVED" or "FLAGGED" ]
+```
 
 
+# The Three Failsafes Explained
+This diagram highlights that your application is secured at three completely isolated checkpoints:
+
+* The Edge Checkpoint (Nginx/ModSecurity): Stops traditional web attacks from even touching your application code.
+
+* The AI Checkpoint (FastAPI): Wraps the AI engine in a protective bubble so users can't trick it, and it can't accidentally attack the user.
+
+* The Data Checkpoint (Python DLP): Ensures that even if the AI perfectly extracts sensitive information from a label, it is destroyed in 
+application memory before it can ever be stored in a database or rendered on the screen.
 
 
 
