@@ -66,6 +66,29 @@ Once the containers are running, download the Qwen2.5-VL weights into the Ollama
       **Password:** `~123PASSword!@#~`
 ### 3b. LIVE
       Navigate to http://184.73.38.33  (HTTP, not HTTPS)
+### 3c. Cloud (Suggest Ubuntu 24, AMD if higher specs, there is an option for GPU within the `verification_engine.py` script for image processing as well which is not tested in cloud)
+      #Update/Upgrades
+      sudo apt update && sudo apt upgrade
+      
+      # Install Docker via the official script
+      curl -fsSL https://get.docker.com -o get-docker.sh
+      sudo sh get-docker.sh
+
+      # Add the ubuntu user to the docker group to execute without sudo
+      sudo usermod -aG docker ubuntu
+
+      # Apply the new group membership to the current shell
+      newgrp docker
+
+      # Clone your public repository 
+      git clone https://github.com/no-time/TTB-COLA.git
+
+      # Enter the project directory
+      cd TTB-COLA
+
+      # Build the custom WAF and start the containerized stack
+      docker compose up -d --build
+      docker compose exec ollama-server ollama pull qwen2.5vl
 
 ## 🖥️ User Roles & Workflows
 
