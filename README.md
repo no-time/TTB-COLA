@@ -141,11 +141,12 @@ Approved Registry, auto submitted to this queue if passed AI Batch Approval. Can
 Uses simple redaction (this is configured to go through improved PII controls, right now just running through regex controls)
 
 
-**Input sanitization (within Script)**
+Input sanitization (within Script), prevents SQLi.
+
 ---
 <img width="1828" height="312" alt="image" src="https://github.com/user-attachments/assets/dc6d9a8a-35a6-4b5c-a573-de069cb3a395" />
 
-**Uses OWASP Top 10 (prevents basic SQLi/XSS)**
+**Uses OWASP Top 10 (prevents basic XSS)**
 
 2026/07/14 04:33:58 [error] 7#7: *191 [client [REDACTED_CLIENT_IP]] **ModSecurity: Access denied with code 403 (phase 2).** Matched "Operator `Ge' with parameter `5' against variable `TX:ANOMALY_SCORE' (Value: `13' ) [file "/usr/share/modsecurity-crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf"] [line "81"] [id "949110"] [rev ""] [msg "Inbound Anomaly Score Exceeded (Total Score: 13)"] [data ""] [severity "2"] [ver "OWASP_CRS/3.3.4"] [maturity "0"] [accuracy "0"] [tag "application-multi"] [tag "language-multi"] [tag "platform-multi"] [tag "attack-generic"] [hostname "172.18.0.5"] [uri "/favicon.ico"] [unique_id "[REDACTED_UNIQUE_ID]"] [ref ""], client: [REDACTED_CLIENT_IP], server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "[REDACTED_HOST_IP]", referrer: "**http://[REDACTED_HOST_IP]/%3Cscript%3Ealert('Vulnerable')%3C/script%3E**" 
 
