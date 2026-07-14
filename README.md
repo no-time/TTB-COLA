@@ -274,7 +274,7 @@ application memory before it can ever be stored in a database or rendered on the
 
 ---
 
-### `proxy.py` (FastAPI AI Guardrail)
+### `ai_guardrail.py` (FastAPI AI Guardrail)
 
 | Component | Description |
 | :--- | :--- |
